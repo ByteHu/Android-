@@ -1,0 +1,103 @@
+ViewDragHelper
+收录于v4兼容包,工具类
+
+目的:辅助自定义ViewGroup,为了更好的运用拖拽这一动作
+
+创建实例方法1:
+static ViewDragHelper   create(ViewGroup forParent, float sensitivity, ViewDragHelper.Callback cb)
+
+创建实例方法2:
+static ViewDragHelper   create(ViewGroup forParent, ViewDragHelper.Callback cb)
+
+forParent:是与ViewDragHelper相关联的ViewGroup,及它所辅助的ViewGroup
+
+cb:是 ViewDragHelper.Callback, 是个回调
+
+// 决定了是否需要捕获这个 child，只有捕获了才能进行下面的拖拽行为
+abstract boolean    tryCaptureView(View child, int pointerId)  
+
+// 修整 child 水平方向上的坐标，left 指 child 要移动到的坐标，dx 相对上次的偏移量
+int clampViewPositionHorizontal(View child, int left, int dx)
+
+// 修整 child 垂直方向上的坐标，top 指 child 要移动到的坐标，dy 相对上次的偏移量
+int clampViewPositionVertical(View child, int top, int dy)
+
+// 手指释放时的回调
+void    onViewReleased(View releasedChild, float xvel, float yvel)
+
+/** 是否应该拦截 children 的触摸事件，
+*只有拦截了, ViewDragHelper 才能进行后续的动作
+*
+*将它放在 ViewGroup 中的 onInterceptTouchEvent() 方法中就好了
+**/
+boolean shouldInterceptTouchEvent(MotionEvent ev)
+
+/** 处理 ViewGroup 中传递过来的触摸事件序列
+*在 ViewGroup 中的 onTouchEvent() 方法中处理
+*/
+void    processTouchEvent(MotionEvent ev)
+
+
+示例代码:
+public class TestViewGroup extends FrameLayout {
+    private static final String TAG = "TestViewGroup";
+
+    private ViewDragHelper mDragHelper;
+
+    public TestViewGroup(Context context) {
+        this(context,null);
+    }
+
+    public TestViewGroup(Context context, AttributeSet attrs) {
+        this(context, attrs,0);
+    }
+
+    public TestViewGroup(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+
+        mDragHelper = ViewDragHelper.create(this, new ViewDragHelper.Callback() {
+
+	/**
+	*tryCaptureView() 方法返回 true ,表示要捕获这个 child ,才会导致下面的回调方法被调用
+	*/
+            @Override
+            public boolean tryCaptureView(View child, int pointerId) {
+                return true;
+            }
+
+	    /**
+	    *clampViewPositionHorizontal() 和 clampViewPositionVertical() 中处理 child 拖拽时的位置坐标。
+	    */
+
+            @Override
+            public int clampViewPositionHorizontal(View child, int left, int dx) {
+                return left;
+            }
+
+            @Override
+            public int clampViewPositionVertical(View child, int top, int dy) {
+                return top;
+            }
+
+            @Override
+            public void onViewReleased(View releasedChild, float xvel, float yvel) {
+                super.onViewReleased(releasedChild, xvel, yvel);
+            }
+        });
+
+    }
+
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return mDragHelper.shouldInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mDragHelper.processTouchEvent(event);
+        return true;
+    }
+
+}
+哈哈 哈哈哈
